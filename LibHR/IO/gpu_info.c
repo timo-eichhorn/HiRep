@@ -154,7 +154,7 @@ void print_compute_info(cudaDeviceProp device_prop, input_gpu gpu_var_init) {
     int clock_rate                  = 0;
     int kernel_exec_timeout_enabled = 0;
     cuDeviceGetAttribute(&clock_rate, CU_DEVICE_ATTRIBUTE_CLOCK_RATE, gpu_var_init.gpuID);
-    cuDeviceGetAttribute(%kernel_exec_timeout_enabled, CU_DEVICE_ATTRIBUTE_KERNEL_EXEC_TIMEOUT, gpu_var_init.gpuID);
+    cuDeviceGetAttribute(&kernel_exec_timeout_enabled, CU_DEVICE_ATTRIBUTE_KERNEL_EXEC_TIMEOUT, gpu_var_init.gpuID);
     // Print formatted
     lprintf("GPU_INIT", 10, "Multiprocessors: %d\n", device_prop.multiProcessorCount);
     lprintf("GPU_INIT", 10, "GPU Clock Speed: %.2f GHz\n", clock_rate * 1e-6f);
