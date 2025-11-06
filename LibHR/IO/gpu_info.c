@@ -151,9 +151,13 @@ void print_memory_info(cudaDeviceProp device_prop, input_gpu gpu_var_init) {
  * @param input_gpu             A struct containing parameters on the current GPU.
  */
 void print_compute_info(cudaDeviceProp device_prop, input_gpu gpu_var_init) {
+    int clock_rate                  = 0;
+    int kernel_exec_timeout_enabled = 0;
+    cuDeviceGetAttribute(&clock_rate, CU_DEVICE_ATTRIBUTE_CLOCK_RATE, gpu_var_init.gpuID);
+    cuDeviceGetAttribute(%kernel_exec_timeout_enabled, CU_DEVICE_ATTRIBUTE_KERNEL_EXEC_TIMEOUT, gpu_var_init.gpuID);
     // Print formatted
     lprintf("GPU_INIT", 10, "Multiprocessors: %d\n", device_prop.multiProcessorCount);
-    lprintf("GPU_INIT", 10, "GPU Clock Speed: %.2f GHz\n", device_prop.clockRate * 1e-6f);
+    lprintf("GPU_INIT", 10, "GPU Clock Speed: %.2f GHz\n", clock_rate * 1e-6f);
     lprintf("GPU_INIT", 10, "Total number of register per block: %dB\n", device_prop.regsPerBlock);
     lprintf("GPU_INIT", 10, "Warp size: %dB\n", device_prop.warpSize);
     error(device_prop.warpSize != 32, 1, "init_gpu", "Error: warp size 32 assumed in global sum\n");
@@ -162,9 +166,10 @@ void print_compute_info(cudaDeviceProp device_prop, input_gpu gpu_var_init) {
             device_prop.maxThreadsDim[1], device_prop.maxThreadsDim[2]);
     lprintf("GPU_INIT", 10, "Maximum size of each dimension of a grid (x,y,z): (%d,%d,%d)\n", device_prop.maxGridSize[0],
             device_prop.maxGridSize[1], device_prop.maxGridSize[2]);
-    lprintf("GPU_INIT", 10, "Concurrent copy and execution: %s with %d copy engine(s)\n",
-            device_prop.deviceOverlap ? "Yes" : "No", device_prop.asyncEngineCount);
-    lprintf("GPU_INIT", 10, "Run time limit on kernels: %s\n", device_prop.kernelExecTimeoutEnabled ? "Yes" : "No");
+    // TODO: Concurrent copy and execution should be supported by all current devices
+    //       The corresponding field has been removed from cudaDeviceProp as of CUDA 13.0
+    lprintf("GPU_INIT", 10, "Concurrent copy and execution with %d copy engine(s)\n", device_prop.asyncEngineCount);
+    lprintf("GPU_INIT", 10, "Run time limit on kernels: %s\n", kernel_exec_timeout_enabled ? "Yes" : "No");
     lprintf("GPU_INIT", 10, "Concurrent kernel execution: %s\n", device_prop.concurrentKernels ? "Yes" : "No");
 }
 
@@ -182,7 +187,9 @@ void print_supported_features(cudaDeviceProp device_prop) {
     lprintf("GPU_INIT", 10, "Device PCI Bus ID / PCI location ID:           %d / %d\n", device_prop.pciBusID,
             device_prop.pciDeviceID);
     lprintf("GPU_INIT", 10, "Compute Mode:\n");
-    lprintf("GPU_INIT", 10, "  < %s >\n", sComputeMode[device_prop.computeMode]);
+    // TODO: This field has been removed from cudaDeviceProp as of CUDA 13.0, would need to know the device ID
+    //       Not sure if the PCI bus ID is guaranteed to match the device ID
+    // lprintf("GPU_INIT", 10, "  < %s >\n", sComputeMode[device_prop.computeMode]);
 
 // Multi-GPU calculations are not supported for the old geometry
 #if defined(WITH_GPU) && defined(WITH_MPI) && !defined(WITH_NEW_GEOMETRY)
@@ -228,7 +235,9 @@ void print_performance_metrics() {
     for (int i = 0; i < n_devices; i++) {
         cudaDeviceProp prop;
         cudaGetDeviceProperties(&prop, i);
-        peak_memory_bandwidth += 2.0 * prop.memoryClockRate * (prop.memoryBusWidth / 8) / 1.0e6;
+        int memory_clock_rate = 0;
+        cudaDeviceGetAttribute(&memory_clock_rate, cudaDevAttrMemoryClockRate, i);
+        peak_memory_bandwidth += 2.0 * memory_clock_rate * (prop.memoryBusWidth / 8) / 1.0e6;
     }
     lprintf("GPU_INIT", 10, "Peak Memory Bandwidth (GB/s): %1.6g\n", peak_memory_bandwidth);
 }

@@ -78,7 +78,9 @@ int bytes_per_site_lina_flt(int ninputs, int noutputs, int sitesize) {
         for (int i = 0; i < n_devices; i++) {                                                        \
             cudaDeviceProp prop;                                                                     \
             cudaGetDeviceProperties(&prop, i);                                                       \
-            peak_memory_bandwidth += 2.0 * prop.memoryClockRate * (prop.memoryBusWidth / 8) / 1.0e6; \
+            int memory_clock_rate = 0;                                                               \
+            cudaDeviceGetAttribute(&memory_clock_rate, cudaDevAttrMemoryClockRate, i);               \
+            peak_memory_bandwidth += 2.0 * memory_clock_rate * (prop.memoryBusWidth / 8) / 1.0e6;    \
         }                                                                                            \
         lprintf("RESULT", 0,                                                                         \
                 "Peak Memory Bandwidth: %1.6g GB/s, "                                                \
