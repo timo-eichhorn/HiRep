@@ -166,8 +166,6 @@ void print_compute_info(cudaDeviceProp device_prop, input_gpu gpu_var_init) {
             device_prop.maxThreadsDim[1], device_prop.maxThreadsDim[2]);
     lprintf("GPU_INIT", 10, "Maximum size of each dimension of a grid (x,y,z): (%d,%d,%d)\n", device_prop.maxGridSize[0],
             device_prop.maxGridSize[1], device_prop.maxGridSize[2]);
-    // TODO: Concurrent copy and execution should be supported by all current devices
-    //       The corresponding field has been removed from cudaDeviceProp as of CUDA 13.0
     lprintf("GPU_INIT", 10, "Concurrent copy and execution with %d copy engine(s)\n", device_prop.asyncEngineCount);
     lprintf("GPU_INIT", 10, "Run time limit on kernels: %s\n", kernel_exec_timeout_enabled ? "Yes" : "No");
     lprintf("GPU_INIT", 10, "Concurrent kernel execution: %s\n", device_prop.concurrentKernels ? "Yes" : "No");
@@ -186,10 +184,6 @@ void print_supported_features(cudaDeviceProp device_prop) {
             device_prop.unifiedAddressing ? "Yes" : "No");
     lprintf("GPU_INIT", 10, "Device PCI Bus ID / PCI location ID:           %d / %d\n", device_prop.pciBusID,
             device_prop.pciDeviceID);
-    lprintf("GPU_INIT", 10, "Compute Mode:\n");
-    // TODO: This field has been removed from cudaDeviceProp as of CUDA 13.0, would need to know the device ID
-    //       Not sure if the PCI bus ID is guaranteed to match the device ID
-    // lprintf("GPU_INIT", 10, "  < %s >\n", sComputeMode[device_prop.computeMode]);
 
 // Multi-GPU calculations are not supported for the old geometry
 #if defined(WITH_GPU) && defined(WITH_MPI) && !defined(WITH_NEW_GEOMETRY)
